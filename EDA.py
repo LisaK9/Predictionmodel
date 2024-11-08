@@ -90,6 +90,7 @@ axs[4].set_ylabel('sby_need')
 axs[4].set_xlabel('Datum')
 
 plt.tight_layout()
+plt.savefig('Zeitreihenplots')
 plt.show()
 
 
@@ -100,54 +101,69 @@ correlation_matrix = data.corr()
 plt.figure(figsize=(10, 8))
 sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm', fmt='.2f')
 plt.title('Korrelationsmatrix')
+plt.savefig('Korrelationsmatrix')
 plt.show()
 print(data.dtypes)
 
 # For analysis, select relevant numerical columns for correlation matrix and scatterplot
 numerical_columns = ['n_sick', 'calls', 'n_duty', 'sby_need', 'dafted']
 
-# Adjust the overall context for the plot to reduce font sizes
-#sns.set_context("talk", font_scale=0.2)  # Adjust font_scale to make labels smaller
-
-# Create pairplot with smaller labels and distributions on the diagonal
+# Pairplot mit Verteilungen
 g = sns.pairplot(
     data[numerical_columns],
-    diag_kind="kde",          # Use kernel density estimate for the diagonal plots
+    diag_kind="kde",
 )
-
-# Show the plot
+plt.savefig('Pairplot')
 plt.show()
 
-# Select relevant columns for seasonal decomposition
+# Relevante Variablen für Dekomposition
 variables = ['calls', 'n_sick', 'sby_need']
 
-# Perform seasonal decomposition for each variable
+# Dekomposition
 decompositions = {}
 for var in variables:
     decompositions[var] = seasonal_decompose(data[var], model='additive', period=30)
 
-# Plot seasonal decompositions
 for var, decomposition in decompositions.items():
     plt.figure(figsize=(10, 8))
-    decomposition.plot()
-    plt.suptitle(f'Seasonal Decomposition of {var}', y=1.02)
-plt.show()
 
-# Extract month and weekday from the index for analysis
+    plt.subplot(4, 1, 1)
+    plt.plot(decomposition.observed, label='Observed')
+    plt.legend(loc="upper left")
+
+    plt.subplot(4, 1, 2)
+    plt.plot(decomposition.trend, label='Trend')
+    plt.legend(loc="upper left")
+
+    plt.subplot(4, 1, 3)
+    plt.plot(decomposition.seasonal, label='Seasonal')
+    plt.legend(loc="upper left")
+
+    plt.subplot(4, 1, 4)
+    plt.plot(decomposition.resid, label='Residuals')
+    plt.legend(loc="upper left")
+
+    plt.suptitle(f'Seasonal Decomposition of {var}', y=1.02)
+    plt.tight_layout()
+    plt.savefig(f'Seasonal Decomposition of {var}')
+    plt.show()
+
+# Monat und Wochentag extrahieren
 data['month'] = data.index.month
 data['weekday'] = data.index.weekday
 
-# Calculate average values per month and weekday for each variable
+# Mittelwerte kalkulieren
 heatmap_data_calls = data.pivot_table(values='calls', index='month', columns='weekday', aggfunc=np.mean)
 heatmap_data_n_sick = data.pivot_table(values='n_sick', index='month', columns='weekday', aggfunc=np.mean)
 heatmap_data_sby_need = data.pivot_table(values='sby_need', index='month', columns='weekday', aggfunc=np.mean)
 
-# Separate Heatmaps plotten
+# Heapmaps
 plt.figure(figsize=(8, 6))
 sns.heatmap(heatmap_data_calls, cmap='YlOrBr', annot=True, fmt=".1f", cbar=True)
 plt.title('Seasonality Heatmap of Calls')
 plt.xlabel('Weekday')
 plt.ylabel('Month')
+plt.savefig('Heatmap Calls')
 plt.show()
 
 plt.figure(figsize=(8, 6))
@@ -155,6 +171,7 @@ sns.heatmap(heatmap_data_n_sick, cmap='YlOrBr', annot=True, fmt=".1f", cbar=True
 plt.title('Seasonality Heatmap of n_sick')
 plt.xlabel('Weekday')
 plt.ylabel('Month')
+plt.savefig('Heatmap n_sick')
 plt.show()
 
 plt.figure(figsize=(8, 6))
@@ -162,18 +179,16 @@ sns.heatmap(heatmap_data_sby_need, cmap='YlOrBr', annot=True, fmt=".1f", cbar=Tr
 plt.title('Seasonality Heatmap of sby_need')
 plt.xlabel('Weekday')
 plt.ylabel('Month')
+plt.savefig('Heatmap sby_need')
 plt.show()
 
-# Trend analysis per season
-# Define seasons based on months
+# Analyse für Jahreszeiten
 data['season'] = np.where(data['month'].isin([12, 1, 2]), 'Wi',
                           np.where(data['month'].isin([3, 4, 5]), 'Fr',
                                    np.where(data['month'].isin([6, 7, 8]), 'So', 'He')))
 
-# Calculate average trend per season
 seasonal_trends = data.groupby(['season', data.index.year]).mean()[['calls', 'n_sick', 'sby_need']]
 
-# Plotting trend analysis per season
 fig, axes = plt.subplots(3, 1, figsize=(12, 15))
 variables = ['calls', 'n_sick', 'sby_need']
 
@@ -184,6 +199,7 @@ for i, var in enumerate(variables):
     axes[i].set_ylabel(var)
 
 plt.tight_layout()
+plt.savefig('Trendanalyse')
 plt.show()
 
 fig, axes = plt.subplots(2, 3, figsize=(18, 10))
@@ -196,7 +212,6 @@ monthly_avg.index.name = 'Month'
 weekday_avg = data.groupby(data.index.weekday)[['calls', 'n_sick', 'sby_need']].mean()
 weekday_avg.index = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So']
 
-# Individual plots for each variable per month
 monthly_avg['calls'].plot(ax=axes[0, 0], color='b', marker='o')
 axes[0, 0].set_title('Monthly Average of Calls')
 axes[0, 0].set_xlabel('Month')
@@ -212,7 +227,6 @@ axes[0, 2].set_title('Monthly Average of sby_need')
 axes[0, 2].set_xlabel('Month')
 axes[0, 2].set_ylabel('sby_need')
 
-# Individual plots for each variable per weekday
 weekday_avg['calls'].plot(ax=axes[1, 0], color='b', marker='o')
 axes[1, 0].set_title('Weekday Average of Calls')
 axes[1, 0].set_xlabel('Weekday')
@@ -229,4 +243,5 @@ axes[1, 2].set_xlabel('Weekday')
 axes[1, 2].set_ylabel('sby_need')
 
 plt.tight_layout()
+plt.savefig('Durchschnittswerte')
 plt.show()

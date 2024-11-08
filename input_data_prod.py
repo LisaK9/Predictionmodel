@@ -2,7 +2,6 @@ import pandas as pd
 from prophet import Prophet
 from datetime import timedelta
 import matplotlib.pyplot as plt
-import modeling_functions
 import holidays
 
 # Daten einlesen und vorbereiten
@@ -61,7 +60,7 @@ plt.legend()
 plt.title('Vorhersage der Calls für den Folgemonat')
 plt.xlabel('Datum')
 plt.ylabel('Calls')
-modeling_functions.save_plot("feature_prediction_calls_prod.png")
+plt.savefig('feature_prediction_calls_prod')
 plt.show()
 
 # Prophet-Modell für 'n_sick' vorbereiten
@@ -89,7 +88,7 @@ plt.legend()
 plt.title('Vorhersage der Krankmeldungen für den Folgemonat')
 plt.xlabel('Datum')
 plt.ylabel('n_sick')
-modeling_functions.save_plot("feature_prediction_sick_prod.png")
+plt.savefig('feature_prediction_sick_prod')
 plt.show()
 
 # Vorhersagen für 'calls' und 'n_sick' in einen DataFrame zusammenführen
