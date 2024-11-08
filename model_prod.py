@@ -28,7 +28,7 @@ model = GradientBoostingRegressor(max_depth=4, n_estimators=200, random_state=42
 
 model.fit(X_train_scaled_augmented, y) #Full-Training
 
-# Modell udn Scaler speichern
+# Trainiertes Modell und Scaler speichern
 joblib.dump(model, 'trained_gradient_boosting_model.joblib')
 print("Das Modell wurde erfolgreich gespeichert.")
 joblib.dump(scaler, 'scaler.joblib')
