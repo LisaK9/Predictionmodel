@@ -41,5 +41,5 @@ sickness_data['n_duty'] = sickness_data['n_duty'].astype(int)
 sickness_data['dafted'] = sickness_data['dafted'].astype(int)
 print(sickness_data.head(5))
 print(sickness_data.info())
-#Bereinigte und vorverarbeitete Daten für das Modell exportieren
+#Bereinigte und vorverarbeitete Daten für das Modell/Modellierung exportieren
 sickness_data.to_csv('sickness_modeling.csv', index=False)
