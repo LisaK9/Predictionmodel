@@ -25,7 +25,8 @@ results={}
 predictions_dict = {}
 residuals_dict={}
 baseline = LinearRegression()
-mae, mse, rmse, r2, residuals, y_pred = modeling_functions.train_model_without_tuning(baseline, X_train,y_train,X_test,y_test)
+X_train_scaled_base, X_test_scaled_base, scaler_base = modeling_functions.scale_features(X_train, X_test, features)
+mae, mse, rmse, r2, residuals, y_pred = modeling_functions.train_model_without_tuning(baseline, X_train_scaled_base,y_train,X_test_scaled_base,y_test)
 print("Baseline MSE: ", mse)
 
 results['baseline'] = {
