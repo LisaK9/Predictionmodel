@@ -4,7 +4,6 @@ import seaborn as sns
 import holidays
 from statsmodels.tsa.seasonal import seasonal_decompose
 import numpy as np
-from statsmodels.tools.tools import add_constant
 
 #Daten einlesen
 data=pd.read_csv("sickness_table.csv")
@@ -132,7 +131,7 @@ for var, decomposition in decompositions.items():
     plt.figure(figsize=(10, 8))
     decomposition.plot()
     plt.suptitle(f'Seasonal Decomposition of {var}', y=1.02)
-    plt.show()
+plt.show()
 
 # Extract month and weekday from the index for analysis
 data['month'] = data.index.month
@@ -167,9 +166,9 @@ plt.show()
 
 # Trend analysis per season
 # Define seasons based on months
-data['season'] = np.where(data['month'].isin([12, 1, 2]), 'Winter',
-                          np.where(data['month'].isin([3, 4, 5]), 'Spring',
-                                   np.where(data['month'].isin([6, 7, 8]), 'Summer', 'Fall')))
+data['season'] = np.where(data['month'].isin([12, 1, 2]), 'Wi',
+                          np.where(data['month'].isin([3, 4, 5]), 'Fr',
+                                   np.where(data['month'].isin([6, 7, 8]), 'So', 'He')))
 
 # Calculate average trend per season
 seasonal_trends = data.groupby(['season', data.index.year]).mean()[['calls', 'n_sick', 'sby_need']]
@@ -195,7 +194,7 @@ monthly_avg.index.name = 'Month'
 
 # Durchschnitt pro Wochentag
 weekday_avg = data.groupby(data.index.weekday)[['calls', 'n_sick', 'sby_need']].mean()
-weekday_avg.index = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+weekday_avg.index = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So']
 
 # Individual plots for each variable per month
 monthly_avg['calls'].plot(ax=axes[0, 0], color='b', marker='o')
