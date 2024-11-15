@@ -3,11 +3,26 @@ from prophet import Prophet
 from datetime import timedelta
 import matplotlib.pyplot as plt
 import holidays
+def week_of_month(dt):
+    first_day = dt.replace(day=1)
+    dom = dt.day
+    adjusted_dom = dom + first_day.weekday()
+    return (adjusted_dom - 1) // 7 + 1
 
 # Daten einlesen und vorbereiten
-file_path = 'sickness_modeling.csv'
+file_path = 'sickness_table.csv'
 data = pd.read_csv(file_path)
-
+data = data.drop(columns=["Unnamed: 0"])
+data['date'] = pd.to_datetime(data['date'])
+data['day_of_week'] = data['date'].dt.dayofweek
+data['week'] = data['date'].dt.isocalendar().week
+data['month'] = data['date'].dt.month
+data['season'] = data['month'] % 12 // 3 + 1  # 1: Winter, 2: Frühling, 3: Sommer, 4: Herbst
+data['year'] = data['date'].dt.year
+de_holidays = holidays.Germany()
+#Binäres Feature, ob Feiertag oder nicht
+data['holiday'] = data['date'].apply(lambda x: 1 if x in de_holidays else 0)
+data['week_of_month'] = data['date'].apply(week_of_month)
 # Vorbereitung der Regressoren
 data['date'] = pd.to_datetime(data['date'], format='%Y-%m-%d')
 data['day'] = data['date'].dt.day
@@ -15,7 +30,7 @@ data['month'] = data['date'].dt.month
 data['holiday'] = data['holiday'].astype(int)
 data['season'] = data['season'].astype(int)
 data['day_of_week'] = data['day_of_week'].astype(int)
-data['month_day_interaction'] = (data['month'] - 1) * 7 + data['day_of_week']
+data['week_of_month'] = data['week_of_month'].astype(int)
 
 # Dynamisches Festlegen der Trainingsdaten bis zum 14. Tag des letzten Monats
 max_date = data['date'].max()
@@ -27,15 +42,18 @@ prediction_start_date = (train_end_date + pd.DateOffset(months=1)).replace(day=1
 prediction_end_date = (prediction_start_date + pd.DateOffset(months=1)) - timedelta(days=1)
 
 # Prophet-Modell für 'calls' vorbereiten
-train_prophet = train_data[['date', 'calls', 'holiday', 'month', 'season', 'month_day_interaction']].rename(columns={'date': 'ds', 'calls': 'y'})
+train_prophet = train_data[['date', 'calls','holiday','month', 'season',  'day_of_week', 'year', 'week_of_month']].rename(columns={'date': 'ds', 'calls': 'y'})
 
-# Prophet initialisieren und Regressoren hinzufügen
-model = Prophet(changepoint_prior_scale=0.5, seasonality_prior_scale=9, interval_width=0.95, seasonality_mode='multiplicative')
+
+# Prophet initialisieren
+model = Prophet(changepoint_prior_scale=0.9, seasonality_prior_scale=15, interval_width=0.95, seasonality_mode='multiplicative')
 model.add_seasonality(name='monthly', period=30.5, fourier_order=26)
 model.add_regressor('holiday')
 model.add_regressor('month')
 model.add_regressor('season')
-model.add_regressor('month_day_interaction')
+model.add_regressor('day_of_week')
+model.add_regressor('year')
+model.add_regressor('week_of_month')
 
 # Modell trainieren
 model.fit(train_prophet)
@@ -47,7 +65,10 @@ future_dates['month'] = future_dates['ds'].dt.month
 future_dates['holiday'] = future_dates['ds'].apply(lambda x: 1 if x in de_holidays else 0)
 future_dates['season'] = future_dates['month'] % 12 // 3 + 1
 future_dates['day_of_week'] = future_dates['ds'].dt.weekday
-future_dates['month_day_interaction'] = (future_dates['month'] - 1) * 7 + future_dates['day_of_week']
+future_dates['year'] = future_dates['ds'].dt.year
+
+# Neues Feature 'week_of_month' hinzufügen
+future_dates['week_of_month'] = future_dates['ds'].apply(week_of_month)
 
 # Prognosen generieren für 'calls'
 forecast = model.predict(future_dates)
@@ -100,8 +121,11 @@ combined_forecast_df = pd.DataFrame({
 
 # Zusätzliche Features für das Modell erstellen
 combined_forecast_df['year'] = combined_forecast_df['date'].dt.year
-combined_forecast_df['week'] = combined_forecast_df['date'].dt.isocalendar().week
 combined_forecast_df['n_duty'] = 1900  # Fester Wert, manuelle Änderung
+combined_forecast_df['n_duty'] = combined_forecast_df['n_duty'].astype(int)
+combined_forecast_df['calls'] = combined_forecast_df['calls'].astype(int)
+combined_forecast_df['n_sick'] = combined_forecast_df['n_sick'].astype(int)
+combined_forecast_df['year'] = combined_forecast_df['year'].astype(int)
 
 # Speichern der Vorhersagen als CSV-Datei
 output_path = "input_data_model_prod.csv"

@@ -28,6 +28,9 @@ baseline = LinearRegression()
 X_train_scaled_base, X_test_scaled_base, scaler_base = modeling_functions.scale_features(X_train, X_test, features)
 mae, mse, rmse, r2, residuals, y_pred = modeling_functions.train_model_without_tuning(baseline, X_train_scaled_base,y_train,X_test_scaled_base,y_test)
 print("Baseline MSE: ", mse)
+print("Baseline MAE: ", mae)
+print("Baseline RMSE: ", rmse)
+print("Baseline r2: ", r2)
 
 results['baseline'] = {
         'MAE': mae,
@@ -145,6 +148,7 @@ for model_name, model in models.items():
             'RMSE': best_rmse,
             'R2': best_r2
         }
+        print("Bestes Modell Metriken: ", results[key])
         best_estimators[key] = best_model
         best_scalers[key] = best_scaler
         best_selectors[key] = selector
@@ -163,6 +167,7 @@ for model_name, model in models.items():
 # Ergebnisse der Evaluation der Modelle als Dataframe speichern und ausgeben
 results_evaluation = pd.DataFrame(results).T
 print("\nErgebnisse der Modelle:\n", results_evaluation)
+
 results_evaluation.to_csv('model_evaluation_results.csv', index=True)  # Speichern der Modellevaluation als CSV
 # Hinzufügen der Vorhersagen der Modelle zu result_df
 for model_name, predictions in predictions_dict.items():

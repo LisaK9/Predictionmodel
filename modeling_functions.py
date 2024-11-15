@@ -42,7 +42,17 @@ def load_and_preprocess_data(filepath):
         """
     data = pd.read_csv(filepath)
     data['date'] = pd.to_datetime(data['date'])
-    #data['day'] = data['date'].dt.day
+    data['day'] = data['date'].dt.day
+
+    # Funktion zur Berechnung der Woche im Monat
+    def week_of_month(dt):
+        first_day = dt.replace(day=1)
+        dom = dt.day
+        adjusted_dom = dom + first_day.weekday()
+        return (adjusted_dom - 1) // 7 + 1
+
+    # Neues Feature 'week_of_month' hinzufügen
+    data['week_of_month'] = data['date'].apply(week_of_month)
     data.set_index('date', inplace=True)
     return data[:'2019-04-14']
 
@@ -60,7 +70,7 @@ def define_features_and_target(data):
         data[target] (pd.Series), enthält die Daten der Zielvariable
         features (List), enthält eine Liste der verwendeten Features.
        """
-    features = ['n_duty', 'month', 'day_of_week', 'season', 'week', 'holiday', 'year', 'calls', 'n_sick'
+    features = ['n_duty', 'month', 'day_of_week', 'season', 'week', 'holiday', 'year', 'n_sick', 'day', 'week_of_month', 'calls'
                 ]
     target = 'sby_need'
     return data[features], data[target], features
@@ -86,7 +96,6 @@ def define_feature_selectors():
         Dictionary mit den Namen der Selektoren und den entsprechenden Instanzen
        """
     feature_selectors = {
-        'RFE': RFE(estimator=Ridge(alpha=1.0), n_features_to_select=None),  # Keine feste Anzahl von Features
         'Random Forest': RandomForestRegressor(random_state=42)
     }
     return feature_selectors
@@ -153,11 +162,7 @@ def feature_selection(fs_name, selector, X_train, y_train, n_features):
     Returns:
         np.ndarray: Indizes der ausgewählten Features.
     """
-    if fs_name == 'RFE':
-        selector.n_features_to_select = n_features
-        selector.fit(X_train, y_train)
-        selected_feature_indices = selector.get_support(indices=True)
-    elif fs_name == 'Random Forest':
+    if fs_name == 'Random Forest':
         selector.fit(X_train, y_train)
         importances = selector.feature_importances_
         indices = np.argsort(importances)[::-1]

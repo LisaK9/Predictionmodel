@@ -23,20 +23,19 @@ predictions = model.predict(future_data_scaled)
 # Ergebnisse anzeigen
 future_data['predicted_sby_need'] = predictions
 
-# Anpassungen: 10% auf die Vorhersagen aufrechnen und Werte unter 15 auf 15 setzen (Dient als Puffer)
-predictions_adjusted = predictions * 1.10
-predictions_adjusted = np.where(predictions_adjusted < 15, 15, predictions_adjusted)
+# Anpassungen: 15% auf die Vorhersagen aufrechnen und Werte unter 31 auf 31 setzen (dient als Puffer)
+
+predictions_adjusted = np.where(predictions < 31, 31, predictions*1.15)
 predictions_adjusted = np.ceil(predictions_adjusted)
 # Ergebnisse speichern
 future_data['predicted_sby_need_adjusted'] = predictions_adjusted
 
 # Visualisierung der Vorhersagen und angepassten Vorhersagen
 plt.figure(figsize=(14, 7))
-plt.plot(future_data['date'], future_data['predicted_sby_need'], label='Ursprüngliche Vorhersagen', color='blue', linestyle='--', marker='o')
-plt.plot(future_data['date'], future_data['predicted_sby_need_adjusted'], label='Korrigierte Vorhersagen (10% Erhöhung, min. 15)', color='green', linestyle='-', marker='x')
+plt.plot(future_data['date'], future_data['predicted_sby_need_adjusted'], label='Vorhergesagte Bereitschaftsfahrer', color='green', linestyle='-', marker='x')
 plt.xlabel('Datum')
 plt.ylabel('sby_need')
-plt.title('Vergleich der ursprünglichen und korrigierten Vorhersagen')
+plt.title('Vorhersagen Anzahl Bereitschaftsfahrer')
 plt.legend()
 plt.grid(True)
 plt.savefig('Predicted sby_need')

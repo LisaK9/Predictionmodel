@@ -2,7 +2,7 @@
 1.05-27.05.2019 geschätzt und am Ende eine CSV-Datei erstellt, die als Eingabe für das trainierte Modell dienen soll,
 um Vorhersagen für diesen Zeitraum zu machen.
 Somit kann bereits im Offline-Betrieb evaluiert werden, wie das Modell auf die teils ungenauen Schätzungen
-von calls reagiert und trotzdem valide Vorhersagen liefern kann"""
+von calls reagiert """
 
 import pandas as pd
 from prophet import Prophet
@@ -26,46 +26,76 @@ data['season'] = data['season'].astype(int)
 data['day'] = data['day'].astype(int)
 data['day_of_week'] = data['day_of_week'].astype(int)
 data['month_day_interaction'] = (data['month'] - 1) * 7 + data['day_of_week']
+# Funktion zur Berechnung der Woche im Monat
+def week_of_month(dt):
+    first_day = dt.replace(day=1)
+    dom = dt.day
+    adjusted_dom = dom + first_day.weekday()
+    return (adjusted_dom - 1) // 7 + 1
 
+# Neues Feature 'week_of_month' hinzufügen
+data['week_of_month'] = data['date'].apply(week_of_month)
 # Testzeitraum festlegen:
 
 test_start_date = datetime(2019, 5, 1)
 test_end_date = datetime(2019, 5, 27)
+train_end_date = datetime(2019,4,14)
 
 # Aufteilen in Trainings- und Testdaten
-train_data = data[(data['date'] < test_start_date) | (data['date'] > test_end_date)]
+train_data = data[(data['date'] <= train_end_date)]
 test_data = data[(data['date'] >= test_start_date) & (data['date'] <= test_end_date)]
-
+train_data_sick = data[(data['date'] <= train_end_date)]
 
 """Hier wurden mehrere Kombinationen aus zusätzlichen Regressoren, Lag-Features, Säsonalitäten etc. 
 getestet. Die besten Ergebnisse konnte die hier vorhandene Kombination erzielen"""
 
+
 # Zeitliche Variablen und Lags als Zusatzregressoren hinzufügen
-train_prophet = train_data[['date', 'calls','holiday','month', 'season',  'month_day_interaction']].rename(columns={'date': 'ds', 'calls': 'y'})
+train_prophet = train_data[['date', 'calls','holiday','month', 'season',  'day_of_week', 'year', 'week_of_month']].rename(columns={'date': 'ds', 'calls': 'y'})
 
 # Prophet initialisieren
-model = Prophet(changepoint_prior_scale=0.5, seasonality_prior_scale=9, interval_width=0.95, seasonality_mode='multiplicative')
+model = Prophet(changepoint_prior_scale=0.9, seasonality_prior_scale=15, interval_width=0.95, seasonality_mode='multiplicative')
 model.add_seasonality(name='monthly', period=30.5, fourier_order=26)
 model.add_regressor('holiday')
 model.add_regressor('month')
 model.add_regressor('season')
-model.add_regressor('month_day_interaction')
+model.add_regressor('day_of_week')
+model.add_regressor('year')
+model.add_regressor('week_of_month')
+
 # Modell trainieren
 model.fit(train_prophet)
+train_forecast = model.predict(train_prophet)
+
+mse_train_prophet = mean_squared_error(train_data['calls'], train_forecast['yhat'])
+mae_train_prophet = mean_absolute_error(train_data['calls'], train_forecast['yhat'])
+proz_abw = train_data['calls'] / train_forecast['yhat']
+
+print("Proz Abw: ", proz_abw.mean())
+print("MSE Train: ", mse_train_prophet)
+print("MAE Train: ", mae_train_prophet)
+plt.figure(figsize=(14, 7))
+plt.plot(train_data['date'], train_data['calls'], label='Tatsächliche Calls (Trainingsset)')
+plt.plot(train_forecast['ds'], train_forecast['yhat'], label='Prophet-Vorhersage (Trainingsset)')
+plt.fill_between(train_forecast['ds'], train_forecast['yhat_lower'], train_forecast['yhat_upper'], color='gray', alpha=0.2)
+plt.legend()
+plt.title('Vorhersage der Calls im Vergleich zu den tatsächlichen Werten (Trainingsset)')
+plt.xlabel('Datum')
+plt.ylabel('Calls')
+plt.show()
 
 
 # Vorbereitung der Daten für die Prognose
-future_dates = test_data[['date', 'holiday','month','season', 'month_day_interaction']].rename(columns={'date': 'ds'})
+future_dates = test_data[['date', 'holiday','month','season', 'day_of_week', 'year', 'week_of_month']].rename(columns={'date': 'ds'})
 
 # Prognosen generieren
 forecast = model.predict(future_dates)
+forecast['yhat'] = forecast['yhat']
 
 # Berechnung von MSE, MAE und RMSE
 mse = mean_squared_error(test_data['calls'], forecast['yhat'])
 rmse = np.sqrt(mse)
 mae = mean_absolute_error(test_data['calls'], forecast['yhat'])
-print("Vorhersagen: ", forecast)
-# Ergebnisse anzeigen
 print(f'MSE: {mse:.2f}')
 print(f'RMSE: {rmse:.2f}')
 print(f'MAE: {mae:.2f}')
@@ -86,7 +116,7 @@ plt.show()
 
 """Schätzung des Feature n_sick. Hier wurden ebenfalls mehrere Kombinationen getestet"""
 
-train_prophet2 = train_data[['date', 'n_sick', 'day_of_week', 'month','holiday', 'season']].rename(columns={'date': 'ds', 'n_sick': 'y'})
+train_prophet2 = train_data_sick[['date', 'n_sick', 'day_of_week', 'month','holiday', 'season']].rename(columns={'date': 'ds', 'n_sick': 'y'})
 
 # Prophet initialisieren
 model2 = Prophet(changepoint_prior_scale=0.35)
@@ -107,11 +137,9 @@ forecast2 = model2.predict(future_dates2)
 print('vorhersagen: ', forecast2)
 # Berechnung von MSE, MAE und RMSE
 mse2 = mean_squared_error(test_data['n_sick'], forecast2['yhat'])
-rmse2 = np.sqrt(mse)
+rmse2 = np.sqrt(mse2)
 mae2 = mean_absolute_error(test_data['n_sick'], forecast2['yhat'])
 
-
-# Ergebnisse anzeigen
 print(f'MSE: {mse2:.2f}')
 print(f'RMSE: {rmse2:.2f}')
 print(f'MAE: {mae2:.2f}')
