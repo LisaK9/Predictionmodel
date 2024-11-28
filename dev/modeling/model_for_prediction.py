@@ -14,7 +14,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.model_selection import learning_curve
 
-data = pd.read_csv('sickness_modeling.csv')
+data = pd.read_csv('C:\\Users\\Lisa\\PycharmProjects\\Predictionmodel\\dev\\data_preparation\\sickness_modeling.csv')
 data['date'] = pd.to_datetime(data['date'])
 data.set_index('date', inplace=True)
 test_data = data.loc['2019-05-01':]

@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from sklearn.model_selection import learning_curve
 
 #Daten laden
-data = modeling_functions.load_and_preprocess_data('sickness_modeling.csv')
+data = modeling_functions.load_and_preprocess_data('C:\\Users\\Lisa\\PycharmProjects\\Predictionmodel\\dev\\data_preparation\\sickness_modeling.csv')
 print(data)
 
 #Features und Zielvariable definieren

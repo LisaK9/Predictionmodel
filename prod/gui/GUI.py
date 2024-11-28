@@ -8,7 +8,7 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 
 
-future_data = pd.read_csv('predictions.csv')
+future_data = pd.read_csv('C:\\Users\\Lisa\\PycharmProjects\\Predictionmodel\\prod\\prediction\\predictions.csv')
 future_data['date'] = pd.to_datetime(future_data['date'], format='%Y-%m-%d')
 future_data.set_index('date', inplace=True)
 

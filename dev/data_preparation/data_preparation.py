@@ -4,7 +4,7 @@ import pandas as pd
 import holidays
 
 #Daten laden
-sickness_data = pd.read_csv('sickness_table.csv')
+sickness_data = pd.read_csv('C:\\Users\\Lisa\\PycharmProjects\\Predictionmodel\\sickness_table.csv')
 
 #Datum konvertieren
 sickness_data['date'] = pd.to_datetime(sickness_data['date'])
@@ -42,4 +42,4 @@ sickness_data['dafted'] = sickness_data['dafted'].astype(int)
 print(sickness_data.head(5))
 print(sickness_data.info())
 #Bereinigte und vorverarbeitete Daten für das Modell/Modellierung exportieren
-sickness_data.to_csv('sickness_modeling.csv', index=False)
+sickness_data.to_csv('C:\\Users\\Lisa\\PycharmProjects\\Predictionmodel\\dev\\data_preparation\\sickness_modeling.csv', index=False)

@@ -3,7 +3,7 @@ import pandas as pd
 from sklearn.preprocessing import StandardScaler
 import joblib
 
-data = pd.read_csv('sickness_modeling.csv')
+data = pd.read_csv('C:\\Users\\Lisa\\PycharmProjects\\Predictionmodel\\dev\\data_preparation\\sickness_modeling.csv')
 data['date'] = pd.to_datetime(data['date'])
 data.set_index('date', inplace=True)
 max_date = data.index.max() # Max-Datum bestimmen
@@ -25,7 +25,7 @@ model = GradientBoostingRegressor(max_depth=4, n_estimators=200, random_state=42
 model.fit(X_train_scaled, y) #Full-Training
 
 # Trainiertes Modell und Scaler speichern
-joblib.dump(model, 'trained_gradient_boosting_model.joblib')
+joblib.dump(model, 'C:\\Users\\Lisa\\PycharmProjects\\Predictionmodel\\prod\\model\\trained_gradient_boosting_model.joblib')
 print("Das Modell wurde erfolgreich gespeichert.")
-joblib.dump(scaler, 'scaler.joblib')
+joblib.dump(scaler, 'C:\\Users\\Lisa\\PycharmProjects\\Predictionmodel\\prod\\model\\scaler.joblib')
 print("Scaler wurde erfolgreich gespeichert.")

@@ -6,7 +6,7 @@ from statsmodels.tsa.seasonal import seasonal_decompose
 import numpy as np
 
 #Daten einlesen
-data=pd.read_csv("sickness_table.csv")
+data=pd.read_csv("C:\\Users\\Lisa\\PycharmProjects\\Predictionmodel\\sickness_table.csv")
 print(data.head(5))
 # Grundlegende Informationen und Statistiken anzeigen
 print("Grundlegende Informationen:")

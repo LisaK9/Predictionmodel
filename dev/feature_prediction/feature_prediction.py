@@ -11,10 +11,10 @@ from sklearn.metrics import mean_squared_error
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.metrics import mean_absolute_error
-import modeling_functions
+import dev.modeling.modeling_functions as modeling_functions
 
 # Daten einlesen
-file_path = 'sickness_modeling.csv'
+file_path = 'C:\\Users\\Lisa\\PycharmProjects\\Predictionmodel\\dev\\data_preparation\\sickness_modeling.csv'
 data = pd.read_csv(file_path)
 
 # Vorbereitung der Regressoren

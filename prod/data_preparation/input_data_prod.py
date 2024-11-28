@@ -10,7 +10,7 @@ def week_of_month(dt):
     return (adjusted_dom - 1) // 7 + 1
 
 # Daten einlesen und vorbereiten
-file_path = 'sickness_table.csv'
+file_path = 'C:\\Users\\Lisa\\PycharmProjects\\Predictionmodel\\sickness_table.csv'
 data = pd.read_csv(file_path)
 data = data.drop(columns=["Unnamed: 0"])
 data['date'] = pd.to_datetime(data['date'])
@@ -128,6 +128,6 @@ combined_forecast_df['n_sick'] = combined_forecast_df['n_sick'].astype(int)
 combined_forecast_df['year'] = combined_forecast_df['year'].astype(int)
 
 # Speichern der Vorhersagen als CSV-Datei
-output_path = "input_data_model_prod.csv"
+output_path = "C:\\Users\\Lisa\\PycharmProjects\\Predictionmodel\\prod\\data_preparation\\input_data_model_prod.csv"
 combined_forecast_df.to_csv(output_path, index=False)
 print("Vorhersagen gespeichert in:", output_path)

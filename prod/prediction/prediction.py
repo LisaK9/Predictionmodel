@@ -6,7 +6,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # Eingabedaten für das Modell laden
-future_data = pd.read_csv('input_data_model_prod.csv')
+future_data = pd.read_csv('C:\\Users\\Lisa\\PycharmProjects\\Predictionmodel\\prod\\data_preparation\\input_data_model_prod.csv')
 
 # Sicherstellen, dass das Datum als Datetime-Objekt vorliegt
 future_data['date'] = pd.to_datetime(future_data['date'])
@@ -41,5 +41,5 @@ plt.grid(True)
 plt.savefig('Predicted sby_need')
 plt.show()
 
-output_path = "predictions.csv"
+output_path = "C:\\Users\\Lisa\\PycharmProjects\\Predictionmodel\\prod\\prediction\\predictions.csv"
 future_data.to_csv(output_path, index=False)
