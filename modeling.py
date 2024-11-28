@@ -47,6 +47,10 @@ models, param_grid = modeling_functions.define_models_and_params()
 #Feature Selectors
 feature_selectors = modeling_functions.define_feature_selectors()
 
+#Feature Importance
+feature_importance_df = modeling_functions.plot_feature_importance_with_random_forest(X_train, y_train, features)
+print(feature_importance_df)
+
 #Feature-Selektion, Modell-Training, Hyperparameter-Tuning
 best_estimators = {}
 best_scalers = {}
@@ -141,7 +145,7 @@ for model_name, model in models.items():
                     best_residuals = current_residuals
 
         # Modell Evaluation für jedes Modell speichern
-        key = f"{model_name} with {best_fs_name} ({best_n_features} features)"
+        key = f"{model_name} ({best_n_features} features)"
         results[key] = {
             'MAE': best_mae,
             'MSE': best_score,
@@ -199,14 +203,14 @@ for model_name, combo in model_best_combinations.items():
     plt.figure()
     plt.plot(train_sizes, train_scores_mean, label='Training error')
     plt.plot(train_sizes, test_scores_mean, label='Validation error')
-    plt.title(f'Learning Curve ({model_name} with {fs_name} - {n_features} features)')
+    plt.title(f'Learning Curve ({model_name}')
     plt.xlabel('Training examples')
     plt.ylabel('Error')
     plt.legend()
     plt.grid()
 
     # Lernkurven speichern
-    filename = f"learning_curve_{model_name}_{n_features}_features.png"
+    filename = f"learning_curve_{model_name}.png"
     modeling_functions.save_plot(filename)
     plt.show()
 
@@ -227,7 +231,7 @@ for model_name in predictions_dict.keys():
     plt.xlabel('Test Data Index')
     plt.ylabel('Anzahl benötigte Bereitschaftsfahrer (sby_need)')
     plt.legend()
-    filename = f"predictions_vs_actual_{model_name}.png"
+    filename = f"prediction_vs_actual_{model_name}.png"
     modeling_functions.save_plot(filename)
     plt.show()
 
@@ -241,14 +245,14 @@ for model_name, residuals in residuals_dict.items():
     plt.ylabel('Residuals')
     plt.legend()
     plt.grid(True)
-    filename = f"residuals_{model_name}.png"
+    filename = f"Residuen_{model_name}.png"
     modeling_functions.save_plot(filename)
     plt.show()
 
 #Visualisierung des MSE von jedem Modell
 mse_values = [results[key]['MSE'] for key in results]
 model_names = list(results.keys())
-model_names = [name.split("with")[0].strip() for name in model_names]
+model_names = [name.split("(")[0].strip() for name in model_names]
 
 plt.figure(figsize=(12, 6))
 bars = plt.bar(model_names, mse_values, color='skyblue')
@@ -261,7 +265,7 @@ plt.ylabel('Mean Squared Error (MSE)')
 plt.title('MSE of Each Best Model')
 plt.xticks(rotation=45, ha='right')
 plt.tight_layout()
-modeling_functions.save_plot("MSE-Vergleich.png")
+modeling_functions.save_plot("Vergleich_MSE.png")
 plt.show()
 
 

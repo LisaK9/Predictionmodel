@@ -281,3 +281,37 @@ def save_plot(filename, dpi=300):
         print(f"Plot saved as {filename}")
     except Exception as e:
         print(f"Error saving plot: {e}")
+
+def plot_feature_importance_with_random_forest(X_train, y_train, features):
+    """
+    Berechnet die Feature Importance mit RandomForest und visualisiert sie.
+
+    Args:
+        X_train (pd.DataFrame): Trainingsdaten.
+        y_train (pd.Series): Zielvariable.
+        features (list): Liste der Feature-Namen.
+
+    Returns:
+        pd.DataFrame: DataFrame mit Features und ihren Importances, sortiert.
+    """
+    rf = RandomForestRegressor(random_state=42)
+    rf.fit(X_train, y_train)
+
+    # Feature Importances extrahieren
+    importances = rf.feature_importances_
+    importance_df = pd.DataFrame({
+        "Feature": features,
+        "Importance": importances
+    }).sort_values(by="Importance", ascending=False)
+
+    # Feature Importance visualisieren
+    plt.figure(figsize=(12, 6))
+    plt.bar(importance_df["Feature"], importance_df["Importance"], color="skyblue")
+    plt.xticks(rotation=45, ha="right")
+    plt.xlabel("Features")
+    plt.ylabel("Importance")
+    plt.title("Feature Importance (Random Forest)")
+    plt.tight_layout()
+    plt.show()
+
+    return importance_df
