@@ -101,7 +101,7 @@ plt.show()
 
 
 #Evaluieren, wie sich die Schätzungen als Input auf die Vorhersagen des Modells auswirken
-data_features = pd.read_csv('features_for_prediction.csv')
+data_features = pd.read_csv('C:\\Users\\Lisa\\PycharmProjects\\Predictionmodel\\dev\\feature_prediction\\features_for_prediction.csv')
 X_data_features = data_features[features]
 X_data_features_scaled = scaler.transform(X_data_features)
 
@@ -163,6 +163,55 @@ plt.grid(True)
 plt.savefig('Vorhersage Full Training mit Hold Out')
 plt.show()
 
+
+mean_sby_need = np.mean(data['sby_need'])
+min_driver = np.ceil(mean_sby_need) #Mindestanzahl an Bereitschaftsfahrern
+print("Mean sby_need: ", min_driver)
+y_pred_full_adjusted = np.where(y_pred_full < min_driver, min_driver, y_pred_full)
+y_pred_full_final = np.ceil(y_pred_full_adjusted)
+test_data['y_pred_full_final'] = y_pred_full_final
+# Aktivierungsrate neu berechnen
+test_data['activation_rate_full'] = np.where(
+    (test_data['sby_need'] == 0),
+    0,
+    test_data['sby_need'] / y_pred_full_final * 100
+)
+# Statistische Auswertung der neuen Aktivierungsrate
+activation_rate_full_stats = test_data[['activation_rate', 'activation_rate_full']].describe()
+
+# Berechnung des Anteils der Werte über 100 % für die neue Aktivierungsrate
+above_100_full = (test_data['activation_rate_full'] > 100).mean() * 100
+days_over_100_full = test_data[test_data['activation_rate_full'] > 100]
+count_over_100_full = len(days_over_100_full)
+mean_over_100_full = (days_over_100_full['activation_rate_full'] - 100).mean()
+# Durchschnittliche Aktivierungsrate unter 100 % für angepasste Vorhersagen
+below_100_full = test_data[(test_data['activation_rate_full'] <= 100) & (test_data['activation_rate_full'] > 0)]
+mean_below_100_full = below_100_full['activation_rate_full'].mean()
+count_below_100_full = below_100_full.shape[0]
+
+# Ausgabe der statistischen Zusammenfassung und Anteil über 100 % für die neue Aktivierungsrate
+print("Statistische Kennwerte für Aktivierungsraten:\n", activation_rate_full_stats)
+print("\nAnteil der Tage über 100% - Neue Aktivierungsrate (Adjusted):", above_100_full, "%")
+print("Anzahl der Tage über 100% - Neue Aktivierungsrate (Adjusted):", count_over_100_full)
+print("Durchschnittswert über 100% - Neue Aktivierungsrate (Adjusted):", mean_over_100_full)
+print("Durchschnittswert unter 100% - Neue Aktivierungsrate:", mean_below_100_full)
+print("Anzahl Tage unter 100% - Neue Aktivierungsrate:", count_below_100_full)
+mean_drivers_when_activation_rate_zero_full = test_data.loc[test_data['activation_rate_full'] == 0, 'y_pred_full_final'].mean()
+print("Durchschnittliche Anzahl der bereitgehaltenen Fahrer, wenn die Aktivierungsrate 0 ist:", mean_drivers_when_activation_rate_zero_full)
+
+# Visualisierung der Aktivierungsraten
+plt.figure(figsize=(14, 7))
+plt.plot(test_data.index, test_data['activation_rate_full'], label='Aktivierungsrate Holdout', color='green', marker='o', linestyle='-')
+plt.plot(test_data.index, test_data['activation_rate'], label='Aktivierungsrate Actual', color='red', marker='x', linestyle='--')
+plt.axhline(y=100, color='grey', linestyle='--', label='100% Aktivierung')
+plt.xlabel("Datum")
+plt.ylabel("Aktivierungsrate")
+plt.title("Vergleich der Aktivierungsraten: Holdout, Actual")
+plt.legend()
+plt.grid(True)
+plt.savefig('Vergleich der Aktivierungsraten')
+plt.show()
+
 #Dasselbe für die geschätzten Features als Input evaluieren
 
 y_pred_features_full = model2.predict(X_data_features_scaled)
@@ -190,10 +239,6 @@ plt.grid(True)
 plt.savefig('Vorhersage Full Training mit Schätzwerten')
 plt.show()
 
-
-mean_sby_need = np.mean(data['sby_need'])
-min_driver = np.ceil(mean_sby_need) #Mindestanzahl an Bereitschaftsfahrern
-print("Mean sby_need: ", min_driver)
 
 # Statistische Auswertung der aktuellen Aktivierungsrate
 activation_rate_stats = test_data[['activation_rate']].describe()
